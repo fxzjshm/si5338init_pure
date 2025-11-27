@@ -24,6 +24,10 @@ endfunction
 interface Si5338#(numeric type baud_rate, numeric type clock_freq_Hz);
     interface UartTxWires#(baud_rate, clock_freq_Hz) uart_tx_wires;
     interface I2CMasterWires i2c_master_wires;
+    (*always_enabled,always_ready*)
+    method Bit#(1) done;
+    (*always_enabled,always_ready*)
+    method Bit#(1) error;
 endinterface
 
 
@@ -62,6 +66,9 @@ module mkSi5338(Si5338#(baud_rate, clock_freq_Hz));
     Reg#(Bit#(8)) reg_new_data<-mkReg(?);
     Reg#(UInt#(26)) wait_counter<-mkReg(0);
     Reg#(Bit#(7)) check_locked_count<-mkReg(0);
+
+    Reg#(Bit#(1)) reg_done<-mkReg(0);
+    Reg#(Bit#(1)) reg_error<-mkReg(0);
 
 `ifdef DEBUG_OUT
     function Stmt print_str(String s);
@@ -357,9 +364,11 @@ module mkSi5338(Si5338#(baud_rate, clock_freq_Hz));
             read_reg_data(si5338_i2c_addr, 8'hda);
             if(received_data[4]==0) seq
                 print_str("locked");
+                reg_done <= 1;
             endseq
             else seq
                 print_str("not locked");
+                reg_error <= 1;
             endseq
             print_line_break();
         endseq
@@ -394,6 +403,8 @@ module mkSi5338(Si5338#(baud_rate, clock_freq_Hz));
     
     interface UartTxWires uart_tx_wires=tx.wires;
     interface I2CMasterWires i2c_master_wires=i2cm.wires;
+    method Bit#(1) done = reg_done;
+    method Bit#(1) error = reg_error;
 endmodule
 
 (*synthesize*)
