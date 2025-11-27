@@ -11,7 +11,7 @@ import BlueUtils::*;
 //typedef 115200 BaudRate;
 //typedef 50_000_000 ClockFreq;
 Bit#(7) si5338_i2c_addr=7'h70;
-
+String reg_file_name="si5338_reg.mem";
 
 `define DEBUG_OUT
 Bit#(8) los_mask=8'h04;
@@ -42,7 +42,7 @@ endinstance
 
 
 module mkSi5338(Si5338#(baud_rate, clock_freq_Hz));
-    RegFile#(Bit#(9), Si5338Reg) reg_data <-mkRegFileLoad("si5338_reg.mem",0, 349);
+    RegFile#(Bit#(9), Si5338Reg) reg_data <-mkRegFileLoad(reg_file_name,0, 349);
     UartTx#(baud_rate, clock_freq_Hz) tx <- mkUartTx;
     I2CMaster i2cm<-mkI2CMaster(7);
     Clock current_clk<-exposeCurrentClock();
